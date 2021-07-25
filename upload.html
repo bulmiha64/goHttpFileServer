@@ -117,13 +117,12 @@
 	}
 
 	function uploadFile() {
-		// var file = _("file1").files[0];
-		var formfiles = _("file1").files;
-		var formdata = new FormData();
-		for (var i = 0; i < formfiles.length; i++) {
-			formdata.append("myFile", formfiles[i]);
-		}
+		var file = _("file1").files;
 		// alert(file.name+" | "+file.size+" | "+file.type);
+		var formdata = new FormData();
+		for (const x of file) {
+			formdata.append("myFile", x);
+		}
 		var ajax = new XMLHttpRequest();
 		ajax.upload.addEventListener("progress", progressHandler, false);
 		ajax.addEventListener("load", completeHandler, false);

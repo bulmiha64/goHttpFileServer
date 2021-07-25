@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -33,46 +34,29 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	for {
 		part, err := reader.NextPart()
 		if err != nil {
-			break
+			return
 		}
 
 		if part.FormName() == "myFile" {
 			outPath := part.FileName()
 			outPath = path.Join(*dir, outPath)
 			out, err := os.Create(outPath)
-			if err != nil {
-				continue
-			}
 			bufOut := bufio.NewWriter(out)
-			// if err != nil {
-			// 	// http.Error(w, err.Error(), http.StatusInternalServerError)
-			// 	break
-			// }
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 			_, err = io.Copy(bufOut, part)
 			bufOut.Flush()
 			out.Close()
 			if err != nil {
 				os.Remove(outPath)
-				// http.Error(w, err.Error(), http.StatusInternalServerError)
-				// break
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
+			log.Printf("%s uploaded file: %s\n", r.RemoteAddr, part.FileName())
 		}
 	}
-	// clientFile, header, err := r.FormFile("myFile")
-	// if err != nil {
-	// 	http.Error(w, "Wrong request", http.StatusBadRequest)
-	// 	return
-	// }
-	// out, err := os.Create(header.Filename)
-	// if err != nil {
-	// 	http.Error(w, "Can't create the file", http.StatusInternalServerError)
-	// 	return
-	// }
-	// defer out.Close()
-	// _, err = io.Copy(out, clientFile)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// }
 }
 
 func main() {
@@ -89,6 +73,8 @@ func main() {
 	http.HandleFunc("/upload", uploadFile)
 
 	http.Handle("/", http.FileServer(http.Dir(*dir)))
+
+	log.Println("Listening at ", *b)
 
 	http.ListenAndServe(*b, handlers.CombinedLoggingHandler(os.Stdout, http.DefaultServeMux))
 }
