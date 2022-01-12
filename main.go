@@ -41,19 +41,25 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 			outPath := part.FileName()
 			outPath = path.Join(*dir, outPath)
 			out, err := os.Create(outPath)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			defer out.Close()
 			bufOut := bufio.NewWriter(out)
+			defer bufOut.Flush()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			_, err = io.Copy(bufOut, part)
-			bufOut.Flush()
-			out.Close()
 			if err != nil {
-				os.Remove(outPath)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				out.Close()
+				os.Remove(part.FileName())
+				continue
 			}
+
 			log.Printf("%s uploaded file: %s\n", r.RemoteAddr, part.FileName())
 		}
 	}
