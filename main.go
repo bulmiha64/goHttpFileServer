@@ -18,8 +18,10 @@ import (
 //go:embed upload.html
 var form []byte
 
-// var formTemplate *template.Template
-var dir *string
+var (
+	dir = flag.String("d", ".", "Directory to serve")
+	b   = flag.String("b", ":9999", "Address to bind to")
+)
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -66,9 +68,6 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-
-	dir = flag.String("d", ".", "Directory to serve")
-	b := flag.String("b", ":9999", "Address to bind to")
 
 	flag.Parse()
 
