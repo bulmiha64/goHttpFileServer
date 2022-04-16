@@ -50,10 +50,6 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 			defer out.Close()
 			bufOut := bufio.NewWriter(out)
 			defer bufOut.Flush()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
 			_, err = io.Copy(bufOut, part)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
